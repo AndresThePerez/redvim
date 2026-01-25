@@ -1,0 +1,62 @@
+-- You can add your own plugins here or in other files in this directory!
+--  I promise not to create any merge conflicts in this directory :)
+--
+-- See the kickstart.nvim README for more information
+return {
+  {
+    {
+      'akinsho/toggleterm.nvim',
+      version = '*',
+      opts = {--[[ things you want to change go here]]
+        mappings = {
+          n = {
+            ['<M-j>'] = { '<Cmd>execute v:count . "ToggleTerm"<CR>', desc = 'Toggle terminal' },
+          },
+        },
+      },
+    },
+  },
+
+  -- [[LazyGit]]
+  -- nvim v0.8.0
+  {
+    'kdheepak/lazygit.nvim',
+    lazy = true,
+    cmd = {
+      'LazyGit',
+      'LazyGitConfig',
+      'LazyGitCurrentFile',
+      'LazyGitFilter',
+      'LazyGitFilterCurrentFile',
+    },
+    -- optional for floating window border decoration
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    -- setting the keybinding for LazyGit with 'keys' is recommended in
+    -- order to load the plugin when the command is run for the first time
+    keys = {
+      { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
+    },
+  },
+  -- lazydocker.nvim
+  {
+    'mgierada/lazydocker.nvim',
+    dependencies = { 'akinsho/toggleterm.nvim' },
+    config = function()
+      require('lazydocker').setup {
+        border = 'curved', -- valid options are "single" | "double" | "shadow" | "curved"
+      }
+    end,
+    event = 'BufRead',
+    keys = {
+      {
+        '<leader>ld',
+        function()
+          require('lazydocker').open()
+        end,
+        desc = 'Open Lazydocker floating window',
+      },
+    },
+  },
+}
