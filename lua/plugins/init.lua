@@ -462,79 +462,48 @@ return {
     end,
   },
 
-  -- ToggleTerm
+  -- ToggleTerm (AstroNvim style configuration)
   {
     'akinsho/toggleterm.nvim',
     version = '*',
     cmd = { 'ToggleTerm', 'TermExec', 'ToggleTermToggleAll' },
-    keys = {
-      { '<leader>tf', '<cmd>ToggleTerm direction=float<cr>', desc = 'Floating terminal' },
-      { '<leader>th', '<cmd>ToggleTerm size=10 direction=horizontal<cr>', desc = 'Horizontal terminal' },
-      { '<leader>tv', '<cmd>ToggleTerm size=80 direction=vertical<cr>', desc = 'Vertical terminal' },
-      { '<leader>tt', '<cmd>ToggleTerm<cr>', desc = 'Toggle terminal' },
-      { '<F7>', '<cmd>ToggleTerm<cr>', desc = 'Toggle terminal' },
+    opts = {
+      size = 10, -- Default size (height for horizontal)
+      open_mapping = false,
+      hide_numbers = true,
+      shade_terminals = true,
+      shading_factor = 2,
+      start_in_insert = true,
+      terminal_mappings = true,
+      persist_size = true,
+      direction = 'horizontal',
+      close_on_exit = true,
+      float_opts = {
+        border = 'rounded',
+        width = function() return math.ceil(vim.o.columns * 0.8) end,
+        height = function() return math.ceil(vim.o.lines * 0.8) end,
+      },
+      highlights = {
+        Normal = { link = 'Normal' },
+        NormalNC = { link = 'NormalNC' },
+        NormalFloat = { link = 'NormalFloat' },
+        FloatBorder = { link = 'FloatBorder' },
+        StatusLine = { link = 'StatusLine' },
+        StatusLineNC = { link = 'StatusLineNC' },
+        WinBar = { link = 'WinBar' },
+        WinBarNC = { link = 'WinBarNC' },
+      },
+      on_create = function(t)
+        vim.opt_local.foldcolumn = '0'
+        vim.opt_local.signcolumn = 'no'
+        -- Buffer-local toggle keymaps for hidden terminals
+        if t.hidden then
+          local function toggle() t:toggle() end
+          vim.keymap.set({ 'n', 't', 'i' }, "<C-'>", toggle, { desc = 'Toggle terminal', buffer = t.bufnr })
+          vim.keymap.set({ 'n', 't', 'i' }, '<F7>', toggle, { desc = 'Toggle terminal', buffer = t.bufnr })
+        end
+      end,
     },
-    config = function()
-      local Terminal = require('toggleterm.terminal').Terminal
-      require('toggleterm').setup({
-        size = function(term)
-          if term.direction == 'horizontal' then
-            return 15
-          elseif term.direction == 'vertical' then
-            return vim.o.columns * 0.4
-          end
-        end,
-        open_mapping = false,
-        hide_numbers = true,
-        shade_terminals = true,
-        start_in_insert = true,
-        terminal_mappings = true,
-        persist_size = true,
-        direction = 'horizontal',
-        close_on_exit = true,
-        float_opts = {
-          border = 'curved',
-          winblend = 0,
-        },
-      })
-
-      -- LazyGit terminal
-      local lazygit = Terminal:new({
-        cmd = 'lazygit',
-        dir = 'git_dir',
-        hidden = true,
-        direction = 'float',
-        float_opts = {
-          border = 'curved',
-          width = math.ceil(vim.o.columns * 0.9),
-          height = math.ceil(vim.o.lines * 0.9),
-        },
-        on_open = function(term)
-          vim.cmd('startinsert!')
-          vim.api.nvim_buf_set_keymap(term.bufnr, 'n', 'q', '<cmd>close<CR>', { noremap = true, silent = true })
-        end,
-      })
-
-      vim.api.nvim_create_user_command('LazyGit', function()
-        lazygit:toggle()
-      end, { desc = 'Toggle LazyGit' })
-
-      -- LazyDocker terminal
-      local lazydocker = Terminal:new({
-        cmd = 'lazydocker',
-        hidden = true,
-        direction = 'float',
-        float_opts = {
-          border = 'curved',
-          width = math.ceil(vim.o.columns * 0.9),
-          height = math.ceil(vim.o.lines * 0.9),
-        },
-      })
-
-      vim.api.nvim_create_user_command('LazyDocker', function()
-        lazydocker:toggle()
-      end, { desc = 'Toggle LazyDocker' })
-    end,
   },
 
   -- Hovercraft (enhanced hover)

@@ -13,10 +13,52 @@ map('n', '<C-j>', '<C-w>j', { desc = 'Move to lower window' })
 map('n', '<C-k>', '<C-w>k', { desc = 'Move to upper window' })
 
 -- Window resizing (CTRL+arrows)
-map('n', '<C-Up>', '<cmd>resize +2<CR>', { desc = 'Increase window height' })
-map('n', '<C-Down>', '<cmd>resize -2<CR>', { desc = 'Decrease window height' })
-map('n', '<C-Left>', '<cmd>vertical resize -2<CR>', { desc = 'Decrease window width' })
-map('n', '<C-Right>', '<cmd>vertical resize +2<CR>', { desc = 'Increase window width' })
+-- Smart horizontal resize: always moves separator in arrow direction
+local function smart_resize_horizontal(direction)
+  local cur_winnr = vim.fn.winnr()
+  local right_winnr = vim.fn.winnr('l')
+  local has_right = cur_winnr ~= right_winnr
+
+  if direction == 'right' then
+    if has_right then
+      vim.cmd('vertical resize +2')
+    else
+      vim.cmd('vertical resize -2')
+    end
+  else -- left
+    if has_right then
+      vim.cmd('vertical resize -2')
+    else
+      vim.cmd('vertical resize +2')
+    end
+  end
+end
+
+-- Smart vertical resize: always moves separator in arrow direction
+local function smart_resize_vertical(direction)
+  local cur_winnr = vim.fn.winnr()
+  local below_winnr = vim.fn.winnr('j')
+  local has_below = cur_winnr ~= below_winnr
+
+  if direction == 'down' then
+    if has_below then
+      vim.cmd('resize +2')
+    else
+      vim.cmd('resize -2')
+    end
+  else -- up
+    if has_below then
+      vim.cmd('resize -2')
+    else
+      vim.cmd('resize +2')
+    end
+  end
+end
+
+map('n', '<C-Up>', function() smart_resize_vertical('up') end, { desc = 'Move separator up' })
+map('n', '<C-Down>', function() smart_resize_vertical('down') end, { desc = 'Move separator down' })
+map('n', '<C-Left>', function() smart_resize_horizontal('left') end, { desc = 'Move separator left' })
+map('n', '<C-Right>', function() smart_resize_horizontal('right') end, { desc = 'Move separator right' })
 
 -- Splits
 map('n', '\\', '<cmd>split<CR>', { desc = 'Horizontal split' })
