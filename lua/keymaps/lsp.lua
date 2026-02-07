@@ -15,31 +15,31 @@ vim.api.nvim_create_autocmd('LspAttach', {
       vim.keymap.set(mode, lhs, rhs, { buffer = buf, desc = 'LSP: ' .. desc })
     end
 
-    -- Navigation
+    -- Navigation (via Snacks.picker)
     buf_map('n', 'gd', function()
-      require('telescope.builtin').lsp_definitions()
+      Snacks.picker.lsp_definitions()
     end, 'Goto definition')
 
     buf_map('n', 'gD', vim.lsp.buf.declaration, 'Goto declaration')
 
     buf_map('n', 'gi', function()
-      require('telescope.builtin').lsp_implementations()
+      Snacks.picker.lsp_implementations()
     end, 'Goto implementation')
 
     buf_map('n', 'gr', function()
-      require('telescope.builtin').lsp_references()
+      Snacks.picker.lsp_references()
     end, 'Goto references')
 
     buf_map('n', 'gy', function()
-      require('telescope.builtin').lsp_type_definitions()
+      Snacks.picker.lsp_type_definitions()
     end, 'Goto type definition')
 
     buf_map('n', 'gO', function()
-      require('telescope.builtin').lsp_document_symbols()
+      Snacks.picker.lsp_symbols()
     end, 'Document symbols')
 
     buf_map('n', 'gW', function()
-      require('telescope.builtin').lsp_dynamic_workspace_symbols()
+      Snacks.picker.lsp_workspace_symbols()
     end, 'Workspace symbols')
 
     -- Hover and signature
@@ -69,7 +69,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
     -- Diagnostics
     buf_map('n', 'gl', vim.diagnostic.open_float, 'Line diagnostics')
     buf_map('n', '<leader>ld', vim.diagnostic.open_float, 'Line diagnostics')
-    buf_map('n', '<leader>lD', '<cmd>Telescope diagnostics bufnr=0<CR>', 'Buffer diagnostics')
+    buf_map('n', '<leader>lD', function()
+      Snacks.picker.diagnostics_buffer()
+    end, 'Buffer diagnostics')
 
     -- LSP info
     buf_map('n', '<leader>li', '<cmd>LspInfo<CR>', 'LSP info')

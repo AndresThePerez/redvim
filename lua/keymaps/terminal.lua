@@ -4,7 +4,6 @@ local map = vim.keymap.set
 
 -- Exit terminal mode
 map('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-map('t', 'jk', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- Terminal navigation with float detection (AstroNvim style)
 local function term_nav(dir)
@@ -27,7 +26,7 @@ map('t', '<C-l>', term_nav('l'), { desc = 'Move to right window' })
 -- Toggle terminal keymaps (AstroNvim style - simple commands)
 -- horizontal = bottom split (full width), vertical = right side split
 map('n', '<leader>tf', '<Cmd>ToggleTerm direction=float<CR>', { desc = 'Float terminal' })
-map('n', '<leader>th', '<Cmd>ToggleTerm size=10 direction=horizontal<CR>', { desc = 'Horizontal terminal (bottom)' })
+map('n', '<leader>th', '<Cmd>ToggleTerm size=15 direction=horizontal<CR>', { desc = 'Horizontal terminal (bottom)' })
 map('n', '<leader>tv', '<Cmd>ToggleTerm size=80 direction=vertical<CR>', { desc = 'Vertical terminal (right)' })
 
 -- Generic toggle with count support (e.g., 2<F7> opens terminal #2)
@@ -43,10 +42,8 @@ map('i', "<C-'>", '<Esc><Cmd>ToggleTerm<CR>', { desc = 'Toggle terminal' })
 local lazygit_term = nil
 
 local function open_lazygit()
-  -- Check if we're in a git repository
   local git_dir = vim.fn.finddir('.git', vim.fn.getcwd() .. ';')
   if git_dir == '' then
-    -- Not a git repo - show notification
     vim.notify('Not a git repository', vim.log.levels.WARN, {
       title = 'LazyGit',
       timeout = 2000,
@@ -54,15 +51,12 @@ local function open_lazygit()
     return
   end
 
-  -- We're in a git repo - open lazygit
-  -- Ensure toggleterm is loaded first
   local ok, _ = pcall(require, 'toggleterm')
   if not ok then
     vim.notify('toggleterm.nvim not installed', vim.log.levels.ERROR)
     return
   end
 
-  -- Create lazygit terminal instance if it doesn't exist
   if not lazygit_term then
     local Terminal = require('toggleterm.terminal').Terminal
     lazygit_term = Terminal:new({
@@ -84,7 +78,6 @@ local function open_lazygit()
   lazygit_term:toggle()
 end
 
-map('n', '<leader>tl', open_lazygit, { desc = 'LazyGit' })
 map('n', '<leader>gg', open_lazygit, { desc = 'LazyGit' })
 
 -- Claude Code terminal (dedicated instance with unique ID)
@@ -104,7 +97,7 @@ local function open_claude()
       dir = vim.fn.getcwd(),
       hidden = true,
       direction = 'vertical',
-      count = 1000, -- Unique ID separate from regular terminals
+      count = 1000,
       size = function()
         return math.ceil(vim.o.columns * 0.4)
       end,
@@ -112,7 +105,7 @@ local function open_claude()
         vim.cmd('startinsert!')
       end,
       on_exit = function()
-        claude_term = nil -- Reset so a new instance can be created
+        claude_term = nil
       end,
     })
   end
@@ -123,15 +116,5 @@ map('n', '<leader>tc', open_claude, { desc = 'Claude Code' })
 
 -- Terminal in current buffer
 map('n', '<leader>tb', '<cmd>terminal<CR>', { desc = 'Buffer terminal' })
-
--- LazyDocker
-map('n', '<leader>td', function()
-  local ok, lazydocker = pcall(require, 'lazydocker')
-  if ok then
-    lazydocker.open()
-  else
-    vim.notify('lazydocker.nvim not installed', vim.log.levels.WARN)
-  end
-end, { desc = 'LazyDocker' })
 
 return {}

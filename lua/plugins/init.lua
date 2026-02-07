@@ -52,76 +52,87 @@ return {
       },
       spec = {
         { '<leader>b', group = 'Buffer' },
+        { '<leader>bs', group = 'Sort' },
         { '<leader>c', group = 'Code/Close' },
         { '<leader>d', group = 'Debug' },
         { '<leader>f', group = 'Find' },
         { '<leader>g', group = 'Git' },
-        { '<leader>h', group = 'Git Hunk', mode = { 'n', 'v' } },
+        { '<leader>gh', group = 'Hunk', mode = { 'n', 'v' } },
+        { '<leader>ght', group = 'Toggle' },
         { '<leader>l', group = 'LSP' },
+        { '<leader>m', group = 'Markdown' },
         { '<leader>p', group = 'Packages' },
         { '<leader>S', group = 'Session' },
         { '<leader>t', group = 'Terminal' },
         { '<leader>u', group = 'UI Toggle' },
-        { '<leader>x', group = 'Lists' },
         { '<leader>y', group = 'Yank' },
         { '<leader><tab>', group = 'Tabs' },
       },
     },
   },
 
-  -- Telescope (fuzzy finder)
+  -- Snacks.nvim (picker, notifier, and more)
   {
-    'nvim-telescope/telescope.nvim',
-    event = 'VimEnter',
-    branch = '0.1.x',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      {
-        'nvim-telescope/telescope-fzf-native.nvim',
-        build = 'make',
-        cond = function()
-          return vim.fn.executable('make') == 1
-        end,
-      },
-      'nvim-telescope/telescope-ui-select.nvim',
-      'nvim-tree/nvim-web-devicons',
-    },
-    config = function()
-      require('telescope').setup({
-        defaults = {
-          prompt_prefix = '   ',
-          selection_caret = '  ',
-          entry_prefix = '  ',
-          sorting_strategy = 'ascending',
-          layout_config = {
-            horizontal = {
-              prompt_position = 'top',
-              preview_width = 0.55,
-            },
-            width = 0.87,
-            height = 0.80,
-          },
-          mappings = {
-            i = {
-              ['<C-j>'] = 'move_selection_next',
-              ['<C-k>'] = 'move_selection_previous',
-            },
-          },
-        },
-        pickers = {
-          find_files = {
+    'folke/snacks.nvim',
+    priority = 1000,
+    lazy = false,
+    opts = {
+      picker = {
+        ui_select = true,
+        sources = {
+          files = {
             hidden = true,
-            file_ignore_patterns = { '.git/', 'node_modules/', '.cache/' },
+            ignored = false,
+            exclude = { '.git/', 'node_modules/', '.cache/' },
           },
         },
-        extensions = {
-          ['ui-select'] = {
-            require('telescope.themes').get_dropdown(),
+        win = {
+          input = {
+            keys = {
+              ['<C-j>'] = { 'list_down', mode = { 'i', 'n' } },
+              ['<C-k>'] = { 'list_up', mode = { 'i', 'n' } },
+            },
           },
         },
+      },
+      notifier = {
+        enabled = true,
+        timeout = 3000,
+        style = 'compact',
+      },
+    },
+    config = function(_, opts)
+      require('snacks').setup(opts)
+
+      -- NvChad picker theme highlights
+      local function set_nvchad_picker_highlights()
+        local normal = vim.api.nvim_get_hl(0, { name = 'Normal' })
+        local visual = vim.api.nvim_get_hl(0, { name = 'Visual' })
+        local string_hl = vim.api.nvim_get_hl(0, { name = 'String' })
+        local error_hl = vim.api.nvim_get_hl(0, { name = 'Error' })
+        local bg = normal.bg
+        local bg_alt = visual.bg
+        local green = string_hl.fg
+        local red = error_hl.fg
+        vim.api.nvim_set_hl(0, 'SnacksPickerBorder', { fg = bg_alt, bg = bg })
+        vim.api.nvim_set_hl(0, 'SnacksPicker', { bg = bg })
+        vim.api.nvim_set_hl(0, 'SnacksPickerPreviewBorder', { fg = bg, bg = bg })
+        vim.api.nvim_set_hl(0, 'SnacksPickerPreview', { bg = bg })
+        vim.api.nvim_set_hl(0, 'SnacksPickerPreviewTitle', { fg = bg, bg = green })
+        vim.api.nvim_set_hl(0, 'SnacksPickerBoxBorder', { fg = bg, bg = bg })
+        vim.api.nvim_set_hl(0, 'SnacksPickerInputBorder', { fg = bg_alt, bg = bg_alt })
+        vim.api.nvim_set_hl(0, 'SnacksPickerInputSearch', { fg = red, bg = bg_alt })
+        vim.api.nvim_set_hl(0, 'SnacksPickerListBorder', { fg = bg, bg = bg })
+        vim.api.nvim_set_hl(0, 'SnacksPickerList', { bg = bg })
+        vim.api.nvim_set_hl(0, 'SnacksPickerListTitle', { fg = bg, bg = bg })
+      end
+
+      -- Apply on load and on colorscheme change
+      set_nvchad_picker_highlights()
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        group = vim.api.nvim_create_augroup('nvchad-picker-highlights', { clear = true }),
+        callback = set_nvchad_picker_highlights,
       })
-      pcall(require('telescope').load_extension, 'fzf')
-      pcall(require('telescope').load_extension, 'ui-select')
     end,
   },
 
@@ -349,10 +360,15 @@ return {
       'folke/lazydev.nvim',
     },
     opts = {
-      keymap = { preset = 'default' },
+      keymap = {
+        preset = 'default',
+        ['<Tab>'] = { 'snippet_forward', 'select_next', 'fallback' },
+        ['<S-Tab>'] = { 'snippet_backward', 'select_prev', 'fallback' },
+      },
       appearance = { nerd_font_variant = 'mono' },
       completion = {
         documentation = { auto_show = true, auto_show_delay_ms = 200 },
+        list = { selection = { preselect = true, auto_insert = false } },
       },
       sources = {
         default = { 'lsp', 'path', 'snippets', 'lazydev' },
@@ -374,12 +390,10 @@ return {
     opts = {
       notify_on_error = false,
       format_on_save = function(bufnr)
-        -- Check if format on save is disabled for this buffer
         local utils = require('core.utils')
         if not utils.format_on_save_enabled(bufnr) then
           return nil
         end
-        -- Check global autoformat setting
         if vim.g.autoformat == false then
           return nil
         end
@@ -416,6 +430,46 @@ return {
     opts = {},
   },
 
+  -- Better Escape
+  {
+    'max397574/better-escape.nvim',
+    event = 'InsertEnter',
+    opts = {
+      timeout = 300,
+      mappings = {
+        i = { j = { j = '<Esc>', k = '<Esc>' } },
+        c = { j = { j = '<Esc>', k = '<Esc>' } },
+        t = { j = { k = '<C-\\><C-n>' } },
+      },
+    },
+  },
+  
+  -- Copilot
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    opts = {
+      suggestion = {
+        enabled = true,
+        auto_trigger = true,
+        keymap = {
+          accept = '<M-l>',
+          accept_word = '<M-k>',
+          accept_line = '<M-j>',
+          next = '<M-]>',
+          prev = '<M-[>',
+          dismiss = '<C-]>',
+        },
+      },
+      panel = { enabled = true },
+      filetypes = {
+        markdown = true,
+        help = false,
+      },
+    },
+  },
+
   -- Mini.nvim modules
   {
     'echasnovski/mini.nvim',
@@ -446,29 +500,19 @@ return {
     opts = { signs = false },
   },
 
-  -- Notifications
-  {
-    'rcarriga/nvim-notify',
-    event = 'VeryLazy',
-    opts = {
-      stages = 'fade_in_slide_out',
-      timeout = 3000,
-      render = 'compact',
-    },
-    config = function(_, opts)
-      local notify = require('notify')
-      notify.setup(opts)
-      vim.notify = notify
-    end,
-  },
-
   -- ToggleTerm (AstroNvim style configuration)
   {
     'akinsho/toggleterm.nvim',
     version = '*',
     cmd = { 'ToggleTerm', 'TermExec', 'ToggleTermToggleAll' },
     opts = {
-      size = 10, -- Default size (height for horizontal)
+      size = function(term)
+        if term.direction == 'horizontal' then
+          return 15
+        elseif term.direction == 'vertical' then
+          return math.ceil(vim.o.columns * 0.35)
+        end
+      end,
       open_mapping = false,
       hide_numbers = true,
       shade_terminals = true,
@@ -496,7 +540,6 @@ return {
       on_create = function(t)
         vim.opt_local.foldcolumn = '0'
         vim.opt_local.signcolumn = 'no'
-        -- Buffer-local toggle keymaps for hidden terminals
         if t.hidden then
           local function toggle() t:toggle() end
           vim.keymap.set({ 'n', 't', 'i' }, "<C-'>", toggle, { desc = 'Toggle terminal', buffer = t.bufnr })
@@ -504,47 +547,6 @@ return {
         end
       end,
     },
-  },
-
-  -- Hovercraft (enhanced hover)
-  {
-    'patrickpichler/hovercraft.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim' },
-    keys = {
-      {
-        'K',
-        function()
-          local hovercraft = require('hovercraft')
-          if hovercraft.is_visible() then
-            hovercraft.enter_popup()
-          else
-            hovercraft.hover()
-          end
-        end,
-        desc = 'Hover',
-      },
-    },
-    config = function()
-      require('hovercraft').setup({
-        providers = {
-          providers = {
-            { 'LSP', require('hovercraft.provider.lsp.hover').new() },
-            { 'Man', require('hovercraft.provider.man').new() },
-            { 'Dictionary', require('hovercraft.provider.dictionary').new() },
-          },
-        },
-        window = {
-          border = 'single',
-          padding = { left = 0, right = 0 },
-        },
-        keys = {
-          { '<C-u>', function() require('hovercraft').scroll({ delta = -4 }) end },
-          { '<C-d>', function() require('hovercraft').scroll({ delta = 4 }) end },
-          { '<TAB>', function() require('hovercraft').hover_next() end },
-          { '<S-TAB>', function() require('hovercraft').hover_next({ step = -1 }) end },
-        },
-      })
-    end,
   },
 
   -- Import other plugin modules
@@ -555,4 +557,5 @@ return {
   { import = 'plugins.php' },
   { import = 'plugins.python' },
   { import = 'plugins.markdown' },
+  { import = 'plugins.golang' },
 }

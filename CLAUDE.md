@@ -27,7 +27,7 @@ For LSP/Mason changes:
 5. Plugins loaded via lazy.nvim from `lua/plugins/`
 
 ### Plugin System
-Plugins use lazy.nvim's spec format. Language-specific configs (PHP, Python, Markdown) are in separate files that extend base plugin specs using the `opts` function pattern:
+Plugins use lazy.nvim's spec format. Language-specific configs (PHP, Python, Golang, Markdown) are in separate files that extend base plugin specs using the `opts` function pattern:
 
 ```lua
 opts = function(_, opts)
@@ -38,10 +38,13 @@ end
 
 ### Keymap Organization
 Keymaps are split by domain in `lua/keymaps/`:
-- `general.lua` - Navigation, splits, save/quit
+- `general.lua` - Navigation, splits, save/quit, window resizing
 - `buffer.lua` - Buffer management (`<leader>b`)
 - `lsp.lua` - LSP keymaps (set via LspAttach autocmd)
-- `picker.lua` - Telescope keymaps (`<leader>f`)
+- `picker.lua` - Snacks.picker keymaps (`<leader>f`)
+- `git.lua` - Git keymaps (`<leader>g`, `<leader>gh*` for hunks)
+- `terminal.lua` - Terminal keymaps (`<leader>t`, LazyGit)
+- `misc.lua` - Comments, file explorer, dashboard, packages, sessions
 - `ui.lua` - UI toggles (`<leader>u`)
 - `debug.lua` - DAP keymaps (`<leader>d`)
 
@@ -62,6 +65,11 @@ LSP keymaps are attached per-buffer via autocmd, not globally.
 - Autoformat disabled by default (`vim.g.autoformat = false`)
 - Colorscheme: astrodark from AstroNvim/astrotheme
 - Dashboard: `lua/plugins/dashboard.lua` (alpha-nvim with "RedVim" branding)
+- Fuzzy finder: Snacks.picker (folke/snacks.nvim) with NvChad-style theme
+- Statusline: Heirline with NvChad-style powerline separators
+- Notifications: Snacks.notifier (replaces nvim-notify)
+- Insert-mode escape: better-escape.nvim (jj/jk with timeout)
+- AI completion: copilot.lua (Alt-based keymaps to avoid Tab conflicts)
 
 ## Adding Language Support
 
@@ -71,7 +79,7 @@ Create `lua/plugins/{language}.lua` with:
 3. Formatter config extending conform.nvim
 4. Treesitter parsers extending nvim-treesitter
 
-See `lua/plugins/python.lua` or `lua/plugins/php.lua` as templates.
+See `lua/plugins/python.lua`, `lua/plugins/php.lua`, or `lua/plugins/golang.lua` as templates.
 
 ## Python Configuration
 
@@ -82,6 +90,13 @@ Python uses a **dual LSP setup** for optimal experience:
 This is because Pyright shows "Unknown" for C++ implemented functions (like `torch.mean`). Jedi extracts docstrings properly from libraries like PyTorch/NumPy.
 
 **Virtual environment**: Use `<leader>cv` (VenvSelect) to select the Python environment. LSP servers need the correct venv to find installed packages.
+
+## Golang Configuration
+
+- **LSP:** gopls with analyses, staticcheck, gofumpt, and inlay hints
+- **Formatters:** goimports + gofumpt via conform.nvim
+- **Mason tools:** gopls, goimports, gofumpt, golangci-lint
+- Config at `lua/plugins/golang.lua`, lazy-loaded on Go filetypes
 
 ## Markdown Configuration
 
@@ -101,8 +116,21 @@ vim.opt.fillchars:append({ eob = ' ' })
 ### Hover showing "Unknown" for Python libraries
 Ensure pylsp is installed (`:Mason`) and the correct venv is selected (`<leader>cv`). Pyright's hover is disabled in favor of Jedi.
 
-### Keybinding conflicts
-The `K` key is mapped by both `lua/keymaps/lsp.lua` and hovercraft.nvim in `lua/plugins/init.lua`. Hovercraft takes precedence and wraps LSP hover with enhanced UI.
+### Hover behavior
+`K` is mapped to `vim.lsp.buf.hover` in `lua/keymaps/lsp.lua`. This provides basic LSP hover documentation.
 
 ### LSP not finding packages
 Select the correct Python virtual environment with `<leader>cv`. The venv must have the packages installed for LSP to provide documentation.
+
+### Window resizing inconsistency
+Window resizing uses AstroNvim's `smart_resize` approach in `lua/keymaps/general.lua`. It checks the edge in the direction of the arrow press and inverts the resize amount if at the edge, so behavior is consistent regardless of which split is focused.
+
+### Tab completion not working (blink.cmp)
+Ensure the blink.cmp keymap config includes explicit Tab/S-Tab bindings:
+```lua
+keymap = {
+  preset = 'default',
+  ['<Tab>'] = { 'snippet_forward', 'select_next', 'fallback' },
+  ['<S-Tab>'] = { 'snippet_backward', 'select_prev', 'fallback' },
+},
+```

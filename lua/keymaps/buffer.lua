@@ -134,7 +134,7 @@ map('n', '<leader>bse', function() sort_buffers_by('extension') end, { desc = 'S
 map('n', '<leader>bsp', function() sort_buffers_by('relative_path') end, { desc = 'Sort by path' })
 map('n', '<leader>bsm', function() sort_buffers_by('modified') end, { desc = 'Sort by modified' })
 
--- Buffer picker (via Telescope, defined in picker.lua)
+-- Buffer picker (via Snacks.picker, defined in picker.lua)
 -- <leader>bb is mapped in picker.lua
 
 -- First and last buffer

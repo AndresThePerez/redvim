@@ -1,101 +1,81 @@
--- Picker (Telescope) keymaps
+-- Picker (Snacks.picker) keymaps
 
 local map = vim.keymap.set
 
--- Helper to check if telescope is loaded
-local function telescope(builtin, opts)
-  return function()
-    require('telescope.builtin')[builtin](opts or {})
-  end
-end
-
 -- Resume last picker
-map('n', '<leader>f<CR>', telescope('resume'), { desc = 'Resume last picker' })
-map('n', '<leader>fr', telescope('resume'), { desc = 'Resume last picker' })
+map('n', '<leader>f<CR>', function() Snacks.picker.resume() end, { desc = 'Resume last picker' })
+map('n', '<leader>fr', function() Snacks.picker.resume() end, { desc = 'Resume last picker' })
 
 -- Find files
-map('n', '<leader>ff', telescope('find_files'), { desc = 'Find files' })
-map('n', '<leader>fF', telescope('find_files', { hidden = true, no_ignore = true }), { desc = 'Find files (all)' })
+map('n', '<leader>ff', function() Snacks.picker.files() end, { desc = 'Find files' })
+map('n', '<leader>fF', function() Snacks.picker.files({ hidden = true, ignored = true }) end, { desc = 'Find files (all)' })
 
 -- Git files
-map('n', '<leader>fg', telescope('git_files'), { desc = 'Find git files' })
+map('n', '<leader>fg', function() Snacks.picker.git_files() end, { desc = 'Find git files' })
 
 -- Live grep
-map('n', '<leader>fw', telescope('live_grep'), { desc = 'Live grep' })
-map('n', '<leader>fW', telescope('live_grep', {
-  additional_args = function()
-    return { '--hidden', '--no-ignore' }
-  end,
-}), { desc = 'Live grep (all)' })
+map('n', '<leader>fw', function() Snacks.picker.grep() end, { desc = 'Live grep' })
+map('n', '<leader>fW', function() Snacks.picker.grep({ hidden = true, ignored = true }) end, { desc = 'Live grep (all)' })
 
 -- Grep word under cursor
-map('n', '<leader>fc', telescope('grep_string'), { desc = 'Find word under cursor' })
+map('n', '<leader>fc', function() Snacks.picker.grep_word() end, { desc = 'Find word under cursor' })
 
 -- Buffers
-map('n', '<leader>fb', telescope('buffers', { sort_mru = true, sort_lastused = true }), { desc = 'Find buffers' })
-map('n', '<leader>bb', telescope('buffers', { sort_mru = true, sort_lastused = true }), { desc = 'Buffer picker' })
+map('n', '<leader>fb', function() Snacks.picker.buffers() end, { desc = 'Find buffers' })
 
 -- Recent files
-map('n', '<leader>fo', telescope('oldfiles'), { desc = 'Recent files' })
+map('n', '<leader>fo', function() Snacks.picker.recent() end, { desc = 'Recent files' })
 
 -- Help
-map('n', '<leader>fh', telescope('help_tags'), { desc = 'Help tags' })
+map('n', '<leader>fh', function() Snacks.picker.help() end, { desc = 'Help tags' })
 
 -- Keymaps
-map('n', '<leader>fk', telescope('keymaps'), { desc = 'Keymaps' })
+map('n', '<leader>fk', function() Snacks.picker.keymaps() end, { desc = 'Keymaps' })
 
 -- Commands
-map('n', '<leader>fC', telescope('commands'), { desc = 'Commands' })
+map('n', '<leader>fC', function() Snacks.picker.commands() end, { desc = 'Commands' })
 
 -- Command history
-map('n', '<leader>f:', telescope('command_history'), { desc = 'Command history' })
+map('n', '<leader>f:', function() Snacks.picker.command_history() end, { desc = 'Command history' })
 
 -- Search history
-map('n', '<leader>f/', telescope('search_history'), { desc = 'Search history' })
+map('n', '<leader>f/', function() Snacks.picker.search_history() end, { desc = 'Search history' })
 
 -- Colorschemes
-map('n', '<leader>ft', telescope('colorscheme', { enable_preview = true }), { desc = 'Colorschemes' })
+map('n', '<leader>ft', function() Snacks.picker.colorschemes() end, { desc = 'Colorschemes' })
 
 -- Marks
-map('n', '<leader>fm', telescope('marks'), { desc = 'Marks' })
+map('n', '<leader>fm', function() Snacks.picker.marks() end, { desc = 'Marks' })
 
 -- Registers
-map('n', '<leader>fR', telescope('registers'), { desc = 'Registers' })
+map('n', '<leader>fR', function() Snacks.picker.registers() end, { desc = 'Registers' })
 
 -- Diagnostics
-map('n', '<leader>fd', telescope('diagnostics', { bufnr = 0 }), { desc = 'Buffer diagnostics' })
-map('n', '<leader>fD', telescope('diagnostics'), { desc = 'Workspace diagnostics' })
+map('n', '<leader>fd', function() Snacks.picker.diagnostics_buffer() end, { desc = 'Buffer diagnostics' })
+map('n', '<leader>fD', function() Snacks.picker.diagnostics() end, { desc = 'Workspace diagnostics' })
 
--- Treesitter symbols
-map('n', '<leader>fs', telescope('treesitter'), { desc = 'Treesitter symbols' })
+-- LSP symbols
+map('n', '<leader>fs', function() Snacks.picker.lsp_symbols() end, { desc = 'LSP symbols' })
 
--- Telescope pickers
-map('n', '<leader>fP', telescope('builtin'), { desc = 'Telescope pickers' })
+-- All pickers
+map('n', '<leader>fP', function() Snacks.picker.pickers() end, { desc = 'All pickers' })
 
 -- Current buffer fuzzy find
-map('n', '<leader>f.', function()
-  require('telescope.builtin').current_buffer_fuzzy_find(
-    require('telescope.themes').get_dropdown({
-      winblend = 10,
-      previewer = false,
-    })
-  )
-end, { desc = 'Fuzzy find in buffer' })
+map('n', '<leader>f.', function() Snacks.picker.lines() end, { desc = 'Fuzzy find in buffer' })
 
--- Live grep in open files
-map('n', '<leader>f/', function()
-  require('telescope.builtin').live_grep({
-    grep_open_files = true,
-    prompt_title = 'Live Grep in Open Files',
-  })
-end, { desc = 'Grep in open files' })
+-- Grep in open files
+map('n', '<leader>f/', function() Snacks.picker.grep_buffers() end, { desc = 'Grep in open files' })
 
 -- Find in neovim config
-map('n', '<leader>fn', function()
-  require('telescope.builtin').find_files({ cwd = vim.fn.stdpath('config') })
-end, { desc = 'Find neovim files' })
+map('n', '<leader>fn', function() Snacks.picker.files({ cwd = vim.fn.stdpath('config') }) end, { desc = 'Find neovim files' })
 
 -- Spell suggest
-map('n', 'z=', telescope('spell_suggest'), { desc = 'Spell suggestions' })
+map('n', 'z=', function() Snacks.picker.spelling() end, { desc = 'Spell suggestions' })
+
+-- Notifications
+map('n', '<leader>fN', function() Snacks.picker.notifications() end, { desc = 'Notifications' })
+
+-- Undo history
+map('n', '<leader>fu', function() Snacks.picker.undo() end, { desc = 'Undo history' })
 
 return {}

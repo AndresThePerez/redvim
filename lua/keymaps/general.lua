@@ -12,53 +12,26 @@ map('n', '<C-l>', '<C-w>l', { desc = 'Move to right window' })
 map('n', '<C-j>', '<C-w>j', { desc = 'Move to lower window' })
 map('n', '<C-k>', '<C-w>k', { desc = 'Move to upper window' })
 
--- Window resizing (CTRL+arrows)
--- Smart horizontal resize: always moves separator in arrow direction
-local function smart_resize_horizontal(direction)
-  local cur_winnr = vim.fn.winnr()
-  local right_winnr = vim.fn.winnr('l')
-  local has_right = cur_winnr ~= right_winnr
-
-  if direction == 'right' then
-    if has_right then
-      vim.cmd('vertical resize +2')
-    else
-      vim.cmd('vertical resize -2')
-    end
-  else -- left
-    if has_right then
-      vim.cmd('vertical resize -2')
-    else
-      vim.cmd('vertical resize +2')
-    end
-  end
+-- Smart window resizing (AstroNvim style)
+-- Checks if the window is at the edge in the resize direction; if so, inverts the resize
+local function smart_resize(vertical, amount)
+  -- Always check the bottom/right edge — if we're there, invert the resize
+  local at_edge = vim.fn.winnr() == vim.fn.winnr(vertical and 'j' or 'l')
+  if at_edge then amount = -amount end
+  local cmd = vertical and 'resize' or 'vertical resize'
+  vim.cmd(cmd .. ' ' .. (amount > 0 and '+' or '') .. amount)
 end
 
--- Smart vertical resize: always moves separator in arrow direction
-local function smart_resize_vertical(direction)
-  local cur_winnr = vim.fn.winnr()
-  local below_winnr = vim.fn.winnr('j')
-  local has_below = cur_winnr ~= below_winnr
+map('n', '<C-Up>', function() smart_resize(true, -2) end, { desc = 'Resize split up' })
+map('n', '<C-Down>', function() smart_resize(true, 2) end, { desc = 'Resize split down' })
+map('n', '<C-Left>', function() smart_resize(false, -2) end, { desc = 'Resize split left' })
+map('n', '<C-Right>', function() smart_resize(false, 2) end, { desc = 'Resize split right' })
 
-  if direction == 'down' then
-    if has_below then
-      vim.cmd('resize +2')
-    else
-      vim.cmd('resize -2')
-    end
-  else -- up
-    if has_below then
-      vim.cmd('resize -2')
-    else
-      vim.cmd('resize +2')
-    end
-  end
-end
-
-map('n', '<C-Up>', function() smart_resize_vertical('up') end, { desc = 'Move separator up' })
-map('n', '<C-Down>', function() smart_resize_vertical('down') end, { desc = 'Move separator down' })
-map('n', '<C-Left>', function() smart_resize_horizontal('left') end, { desc = 'Move separator left' })
-map('n', '<C-Right>', function() smart_resize_horizontal('right') end, { desc = 'Move separator right' })
+-- Terminal-mode resize (so resizing works from within terminal splits)
+map('t', '<C-Up>', function() smart_resize(true, -2) end, { desc = 'Resize split up' })
+map('t', '<C-Down>', function() smart_resize(true, 2) end, { desc = 'Resize split down' })
+map('t', '<C-Left>', function() smart_resize(false, -2) end, { desc = 'Resize split left' })
+map('t', '<C-Right>', function() smart_resize(false, 2) end, { desc = 'Resize split right' })
 
 -- Splits
 map('n', '\\', '<cmd>split<CR>', { desc = 'Horizontal split' })

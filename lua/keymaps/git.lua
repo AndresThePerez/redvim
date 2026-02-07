@@ -2,12 +2,12 @@
 
 local map = vim.keymap.set
 
--- Telescope git pickers
-map('n', '<leader>gb', '<cmd>Telescope git_branches<CR>', { desc = 'Git branches' })
-map('n', '<leader>gc', '<cmd>Telescope git_commits<CR>', { desc = 'Git commits' })
-map('n', '<leader>gC', '<cmd>Telescope git_bcommits<CR>', { desc = 'Git buffer commits' })
-map('n', '<leader>gt', '<cmd>Telescope git_status<CR>', { desc = 'Git status' })
-map('n', '<leader>gS', '<cmd>Telescope git_stash<CR>', { desc = 'Git stash' })
+-- Git pickers (via Snacks.picker)
+map('n', '<leader>gb', function() Snacks.picker.git_branches() end, { desc = 'Git branches' })
+map('n', '<leader>gc', function() Snacks.picker.git_log() end, { desc = 'Git commits' })
+map('n', '<leader>gC', function() Snacks.picker.git_log_file() end, { desc = 'Git buffer commits' })
+map('n', '<leader>gt', function() Snacks.picker.git_status() end, { desc = 'Git status' })
+map('n', '<leader>gS', function() Snacks.picker.git_stash() end, { desc = 'Git stash' })
 
 -- Git hunk navigation (these are also set in gitsigns on_attach)
 map('n', ']c', function()
@@ -26,64 +26,63 @@ map('n', '[c', function()
   end
 end, { desc = 'Previous git change' })
 
--- Git hunk actions (set up via gitsigns on_attach callback in plugin config)
--- These serve as fallbacks/documentation for the keymaps
+-- Git hunk actions (under <leader>gh* to avoid conflict with <leader>h for Dashboard)
 
 -- Stage hunk
-map({ 'n', 'v' }, '<leader>hs', function()
+map({ 'n', 'v' }, '<leader>ghs', function()
   require('gitsigns').stage_hunk()
 end, { desc = 'Stage hunk' })
 
 -- Reset hunk
-map({ 'n', 'v' }, '<leader>hr', function()
+map({ 'n', 'v' }, '<leader>ghr', function()
   require('gitsigns').reset_hunk()
 end, { desc = 'Reset hunk' })
 
 -- Stage buffer
-map('n', '<leader>hS', function()
+map('n', '<leader>ghS', function()
   require('gitsigns').stage_buffer()
 end, { desc = 'Stage buffer' })
 
 -- Undo stage hunk
-map('n', '<leader>hu', function()
+map('n', '<leader>ghu', function()
   require('gitsigns').undo_stage_hunk()
 end, { desc = 'Undo stage hunk' })
 
 -- Reset buffer
-map('n', '<leader>hR', function()
+map('n', '<leader>ghR', function()
   require('gitsigns').reset_buffer()
 end, { desc = 'Reset buffer' })
 
 -- Preview hunk
-map('n', '<leader>hp', function()
+map('n', '<leader>ghp', function()
   require('gitsigns').preview_hunk()
 end, { desc = 'Preview hunk' })
 
 -- Blame line
-map('n', '<leader>hb', function()
+map('n', '<leader>ghb', function()
   require('gitsigns').blame_line({ full = false })
 end, { desc = 'Blame line' })
 
-map('n', '<leader>hB', function()
+map('n', '<leader>ghB', function()
   require('gitsigns').blame_line({ full = true })
 end, { desc = 'Blame line (full)' })
 
 -- Diff
-map('n', '<leader>hd', function()
+map('n', '<leader>ghd', function()
   require('gitsigns').diffthis()
 end, { desc = 'Diff against index' })
 
-map('n', '<leader>hD', function()
+map('n', '<leader>ghD', function()
   require('gitsigns').diffthis('@')
 end, { desc = 'Diff against last commit' })
 
 -- Toggle blame
-map('n', '<leader>htb', function()
+map('n', '<leader>ghtb', function()
   require('gitsigns').toggle_current_line_blame()
 end, { desc = 'Toggle line blame' })
 
 -- Toggle deleted
-map('n', '<leader>htd', function()
+map('n', '<leader>ghtd', function()
   require('gitsigns').toggle_deleted()
 end, { desc = 'Toggle deleted' })
 

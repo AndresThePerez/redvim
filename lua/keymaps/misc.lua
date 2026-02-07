@@ -1,11 +1,7 @@
 -- Miscellaneous keymaps
--- Comments, lists, escape sequences, file explorer, dashboard, packages
+-- Comments, lists, file explorer, dashboard, packages
 
 local map = vim.keymap.set
-
--- Quick escape from insert mode
-map('i', 'jj', '<Esc>', { desc = 'Escape' })
-map('i', 'jk', '<Esc>', { desc = 'Escape' })
 
 -- Toggle comment (with Comment.nvim)
 map('n', '<leader>/', function()
@@ -33,15 +29,19 @@ map('n', '[l', '<cmd>lprev<CR>', { desc = 'Previous location item' })
 
 -- File explorer (Neo-tree)
 map('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle file explorer' })
-map('n', '<leader>o', '<cmd>Neotree focus<CR>', { desc = 'Focus file explorer' })
+map('n', '<leader>o', function()
+  if vim.bo.filetype == 'neo-tree' then
+    vim.cmd.wincmd('p') -- Go back to previous window
+  else
+    vim.cmd('Neotree focus')
+  end
+end, { desc = 'Toggle Explorer Focus' })
 map('n', '<leader>E', '<cmd>Neotree reveal<CR>', { desc = 'Reveal file in explorer' })
 
 -- Dashboard
 map('n', '<leader>h', function()
-  -- Try alpha first, then other dashboard plugins
   local ok = pcall(vim.cmd, 'Alpha')
   if not ok then
-    -- Fallback: just go to empty buffer
     vim.cmd('enew')
   end
 end, { desc = 'Dashboard' })
@@ -60,14 +60,13 @@ map('n', '<leader>pl', '<cmd>Lazy log<CR>', { desc = 'Plugin log' })
 map('n', '<leader>ph', '<cmd>Lazy help<CR>', { desc = 'Plugin help' })
 map('n', '<leader>pd', '<cmd>Lazy debug<CR>', { desc = 'Plugin debug' })
 
--- Session management (with auto-session or persistence.nvim)
+-- Session management (with persistence.nvim)
 map('n', '<leader>Ss', function()
   local ok, persistence = pcall(require, 'persistence')
   if ok then
     persistence.save()
     require('core.utils').notify('Session saved', vim.log.levels.INFO)
   else
-    -- Fallback to mksession
     vim.cmd('mksession! ' .. vim.fn.stdpath('state') .. '/session.vim')
     require('core.utils').notify('Session saved (fallback)', vim.log.levels.INFO)
   end
@@ -78,7 +77,6 @@ map('n', '<leader>Sl', function()
   if ok then
     persistence.load({ last = true })
   else
-    -- Fallback to source
     local session_file = vim.fn.stdpath('state') .. '/session.vim'
     if vim.fn.filereadable(session_file) == 1 then
       vim.cmd('source ' .. session_file)
@@ -120,7 +118,6 @@ vim.api.nvim_create_autocmd('FileType', {
       local line = vim.api.nvim_get_current_line()
       local col = vim.api.nvim_win_get_cursor(0)[2] + 1
 
-      -- Pattern to match markdown links: [text](url)
       local link_pattern = '%[([^%]]+)%]%(([^%)]+)%)'
 
       local start_pos = 1
@@ -132,11 +129,9 @@ vim.api.nvim_create_autocmd('FileType', {
 
         if col >= link_start and col <= link_end then
           if url:match('^https?://') then
-            -- Web URL
             local open_cmd = vim.fn.has('unix') == 1 and 'xdg-open' or 'open'
             vim.fn.jobstart({ open_cmd, url }, { detach = true })
           else
-            -- Local file
             local current_dir = vim.fn.expand('%:p:h')
             local file_path = url
             if not vim.fn.isabsolute(file_path) then
@@ -154,7 +149,6 @@ vim.api.nvim_create_autocmd('FileType', {
         start_pos = link_end + 1
       end
 
-      -- Default gx behavior
       vim.cmd('normal! gx')
     end, { buffer = true, desc = 'Open markdown link' })
   end,
